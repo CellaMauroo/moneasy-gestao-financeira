@@ -37,6 +37,7 @@ class ExpenseCategory(models.Model):
 class Expense(models.Model):
     expense_name = models.CharField(max_length=255)
     expense_date = models.DateTimeField()
+    value = models.DecimalField(max_digits=10, decimal_places=2)
     group = models.ForeignKey(ExpenseGroup, on_delete=models.CASCADE, related_name='expenses')
     category = models.ForeignKey(ExpenseCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='expenses')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='expenses')
