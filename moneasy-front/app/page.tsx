@@ -6,9 +6,9 @@ export default function Home() {
     const isLoggedIn = false
 
     if (isLoggedIn) {
-        redirect("/dashboard")
+        redirect("/pages/dashboard")
     } else {
-        redirect("/login")
+        redirect("/pages/register")
     }
 }
 
