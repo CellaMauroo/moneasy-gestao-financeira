@@ -7,12 +7,13 @@ export default function LoginPage() {
     const router = useRouter()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [passwordConfirmation, setPasswordConfirmation] = useState("")
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault()
-        if (email === "admin@example.com" && password === "123") {
+        if (email === "admin@example.com" && password === "123" && passwordConfirmation === password) {
             localStorage.setItem("logged", "true")
-            router.push("/dashboard")
+            router.push("pages/dashboard")
         } else {
             alert("Login inválido")
         }
@@ -50,12 +51,12 @@ export default function LoginPage() {
                             onChange={e => setPassword(e.target.value)}
                             type="password"
                             placeholder="Senha"
-                            className="border rounded-md p-3 mb-6"
+                            className="border rounded-md p-3 mb-3"
                         />
                         <label>Confirme sua senha</label>
                         <input
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
+                            value={passwordConfirmation}
+                            onChange={e => setPasswordConfirmation(e.target.value)}
                             type="password"
                             placeholder="Senha"
                             className="border rounded-md p-3 mb-6"
