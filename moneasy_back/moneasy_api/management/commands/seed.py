@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from moneasy_api.models import *
+from decimal import Decimal
 from django.utils import timezone
 import random
 
@@ -50,6 +51,7 @@ class Command(BaseCommand):
             Expense.objects.create(
                 expense_name=f'Despesa {i}',
                 expense_date=timezone.now(),
+                value=Decimal(f"{random.uniform(10, 500):.2f}"),
                 group=random.choice(groups),
                 category=random.choice(categories),
                 user=random.choice(users)
