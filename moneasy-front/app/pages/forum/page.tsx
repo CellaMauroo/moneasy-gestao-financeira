@@ -45,7 +45,7 @@ export default function Forum() {
     <div>
       <Header />
       <div className="flex">
-        <Navbar />
+        <Navbar active="forum"/>
         <main className="w-6/7 p-6 bg-gray-300 min-h-screen relative">
 
           {topics.map((topic, i) => (
