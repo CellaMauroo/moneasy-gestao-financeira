@@ -57,7 +57,6 @@ export default function Forum() {
             />
           ))}
 
-          {/* Botão flutuante */}
           <button
             onClick={() => setShowForm(true)}
             className="fixed bottom-6 right-6 bg-green-600 text-white px-4 py-2 rounded-full shadow-lg hover:bg-green-700 transition"
@@ -65,7 +64,6 @@ export default function Forum() {
             + Novo Tópico
           </button>
 
-          {/* Modal de novo tópico */}
           {showForm && (
             <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
               <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-lg">
