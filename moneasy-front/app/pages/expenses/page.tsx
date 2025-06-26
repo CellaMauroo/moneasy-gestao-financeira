@@ -8,7 +8,7 @@ import ExpenseModal from "../../components/expenseModal";
 import { UserProvider } from "../../contexts/UserContext";
 
 interface Expense {
-  reference: string;   // ex.: “Jun/2025”
+  reference: string; 
   items: Item[];
 }
 
@@ -28,11 +28,10 @@ export default function ExpensesPage() {
   };
 
   const saveExpense = (refDateISO: string, items: Item[]) => {
-    // transforma “2025-06” → “Jun/2025”
     const [year, month] = refDateISO.split("-");
     const ref = new Date(Number(year), Number(month) - 1)
       .toLocaleDateString("pt-BR", { month: "short", year: "numeric" })
-      .replace(".", ""); // remove pontuação
+      .replace(".", ""); 
 
     setExpenses((prev) =>
       editingIdx === null
@@ -46,9 +45,7 @@ export default function ExpensesPage() {
       <Header />
 
       <div className="flex min-h-screen">
-        <aside className="w-60 bg-white border-r shadow-sm">
-          <Navbar />
-        </aside>
+        <Navbar active="calc"/>
 
         <main className="flex-1 px-10 py-6 bg-gray-100 space-y-6 overflow-y-auto">
           <input
@@ -80,7 +77,6 @@ export default function ExpensesPage() {
           initialDate={
             editingIdx !== null
               ? (() => {
-                  // converte “Jun/2025” → “2025-06”
                   const [mes, ano] = expenses[editingIdx].reference.split("/");
                   const months = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
                   const idxMonth = months.findIndex((m) =>

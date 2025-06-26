@@ -1,7 +1,7 @@
 import Image from "next/image"
 
 interface NavbarProps {
-  active?: "income" | "expenses" | "materials" | "forum"
+  active?: "money" | "calc" | "school" | "forum"
 }
 
 export default function Navbar({ active }: NavbarProps) {
@@ -22,19 +22,27 @@ export default function Navbar({ active }: NavbarProps) {
       <nav className="flex flex-col align-center justify-center px-5 py-5 gap-y-14 text-2xl font-bold">
         <div className="flex">
           <Image src={getIcon("money", active)} alt="Renda" width={40} height={40} />
-          <a href="/income" className={navLinkClasses("income", active)}>Renda</a>
+          <a href="/pages/income" className={navLinkClasses("money", active)}>Renda</a>
         </div>
         <div className="flex">
           <Image src={getIcon("calc", active)} alt="Despesas" width={40} height={40} />
-          <a href="/expenses" className={navLinkClasses("expenses", active)}>Despesas</a>
+          <a href="/pages/expenses" className={navLinkClasses("calc", active)}>Despesas</a>
         </div>
         <div className="flex">
           <Image src={getIcon("school", active)} alt="Materiais" width={40} height={40} />
-          <a href="/materials" className={navLinkClasses("materials", active)}>Materiais</a>
+          <a href="/pages/materials" className={navLinkClasses("school", active)}>Materiais</a>
         </div>
         <div className="flex">
           <Image src={getIcon("forum", active)} alt="Fórum" width={40} height={40} />
           <a href="/pages/forum" className={navLinkClasses("forum", active)}>Fórum</a>
+        </div>
+        <div className="flex">
+          <Image src={getIcon("report", active)} alt="Report" width={40} height={40} />
+          <a href="/pages/report" className={navLinkClasses("report", active)}>Relatórios</a>
+        </div>
+        <div className="flex">
+          <Image src={getIcon("panel", active)} alt="Panel" width={40} height={40} />
+          <a href="/pages/panel" className={navLinkClasses("panel", active)}>Painel Geral</a>
         </div>
       </nav>
     </aside>
