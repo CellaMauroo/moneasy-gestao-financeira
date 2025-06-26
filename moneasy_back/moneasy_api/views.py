@@ -1,6 +1,8 @@
 from rest_framework import viewsets, permissions
+from django.db.models.functions import ExtractYear, ExtractMonth
+from django.db.models import Sum
 from rest_framework.response import Response
-from datetime import date
+from datetime import date, datetime
 from rest_framework.decorators import action
 from dateutil.relativedelta import relativedelta
 from moneasy_api.serializers import *
@@ -22,6 +24,8 @@ class ExpenseCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = ExpenseCategorySerializer
 
 
+
+
 class ExpenseViewSet(viewsets.ModelViewSet):
     queryset = Expense.objects.none()
     serializer_class = ExpenseSerializer
@@ -34,11 +38,11 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def by_month(self, request):
-        month_str = request.query_params.get('mes')
+        month_str = request.query_params.get('month')
         user_id = request.query_params.get('user_id')
 
         if not month_str or not user_id:
-            return Response({'erro': 'Parâmetros "user_id" e "mes" são obrigatórios.'}, status=400)
+            return Response({'erro': 'Parâmetros "user_id" e "month" são obrigatórios.'}, status=400)
 
         try:
             year, month = map(int, month_str.split('-'))
@@ -55,6 +59,63 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
         serializer = ExpenseSerializer(expenses, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def last_months(self, request):
+        user_id = request.query_params.get('user_id')
+        months_str = request.query_params.get('months')
+        
+        if not months_str or not user_id:
+            return Response({'erro': 'Parâmetros "user_id" e "months" são obrigatórios.'}, status=400)
+        
+        try:
+            current_date = date.today()
+            months_str =  int(months_str)
+            final_date = (current_date.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
+            initial_date = (current_date.replace(day=1) - relativedelta(months=months_str))
+        except Exception as e:
+            return Response({'erro': f'Erro: {str(e)}'}, status=400)
+        
+        expenses = Expense.objects.filter(
+        user_id=user_id,
+        expense_date__date__gte=initial_date,
+        expense_date__date__lte=final_date)
+
+        despesas_por_mes = {}
+
+        mes_atual = initial_date
+        while mes_atual <= final_date:
+            chave_mes = mes_atual.strftime('%Y-%m')
+            despesas_por_mes[chave_mes] = []
+            mes_atual += relativedelta(months=1)
+
+        
+        for despesa in expenses:
+            chave_mes = despesa.expense_date.strftime('%Y-%m')
+            despesas_por_mes[chave_mes].append(despesa)
+
+    
+        resultado = []
+        for mes, lista_despesas in despesas_por_mes.items():
+            serializer = ExpenseSerializer(lista_despesas, many=True)
+            total_mes = sum([despesa.value for despesa in lista_despesas])
+            resultado.append({
+                'month': mes,
+                'total': total_mes,
+                'expenses': serializer.data
+            })
+
+        return Response(resultado)
+
+        
+
+
+
+        
+
+
+
+
 
 
 class LessonViewSet(viewsets.ModelViewSet):
