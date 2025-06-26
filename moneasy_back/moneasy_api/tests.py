@@ -1,3 +1,4 @@
-from django.test import TestCase
+from validate_docbr import CPF
 
-# Create your tests here.
+cpf = CPF()
+print(cpf.validate('087.870.750-67'))
