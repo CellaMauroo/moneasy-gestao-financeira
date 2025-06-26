@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand
 from moneasy_api.models import *
 from decimal import Decimal
 from django.utils import timezone
+from datetime import date
+from validate_docbr import CPF
 import random
 
 class Command(BaseCommand):
@@ -21,11 +23,17 @@ class Command(BaseCommand):
 
         # Criação de usuários
         users = []
+
         for i in range(3):
+            cpf = CPF()
             user = User.objects.create(
+                cpf= cpf.generate(),  # Ex: 00000000001, 00100100102...
+                birth_date=date(1990 + i, 1, 1),
+                first_name=f'Nome{i}',
+                last_name=f'Sobrenome{i}',
                 username=f'user{i}',
                 email=f'user{i}@example.com',
-                password='123456',
+                password='123456',  # se você estiver usando hash, use make_password()
                 register_date=timezone.now()
             )
             users.append(user)
