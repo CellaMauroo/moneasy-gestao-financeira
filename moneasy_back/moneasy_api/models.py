@@ -1,10 +1,15 @@
 from django.db import models
+from django.utils import timezone
 
 class User(models.Model):
-    username = models.CharField(max_length=255)
-    email = models.CharField(max_length=255)
-    password = models.CharField(max_length=255)
-    register_date = models.DateTimeField()
+    cpf = models.CharField(max_length=11, null=False, unique=True)
+    birth_date = models.DateField(null=False, blank=False)
+    first_name = models.CharField(max_length=255, null= False)
+    last_name = models.CharField(max_length=255, null= False)
+    username = models.CharField(max_length=255, null=False)
+    email = models.EmailField(max_length=255, null=False, unique=True)
+    password = models.CharField(max_length=128)
+    register_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.username
