@@ -5,9 +5,37 @@ from rest_framework.decorators import action
 from dateutil.relativedelta import relativedelta
 from moneasy_api.serializers import *
 from moneasy_api.models import *
-
+from rest_framework.views import APIView
+from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.permissions import AllowAny
+import jwt
+import os
 # Create your views here.
+SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 
+class SupabaseLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        auth_header = request.headers.get("Authorization")
+
+        if not auth_header or not auth_header.startswith("Bearer "):
+            raise AuthenticationFailed("Token JWT ausente ou inválido.")
+
+        token = auth_header.split(" ")[1]
+
+        try:
+            payload = jwt.decode(token, SUPABASE_JWT_SECRET, algorithms=["HS256"])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed("Token expirado.")
+        except jwt.InvalidTokenError:
+            raise AuthenticationFailed("Token inválido.")
+        
+        return Response({
+            "mensagem": "Token válido. Acesso liberado.",
+            "usuario_email": payload.get("email"),
+        })
+    
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
