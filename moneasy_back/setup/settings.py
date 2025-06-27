@@ -45,6 +45,13 @@ INSTALLED_APPS = [
     'moneasy_api',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'moneasy_api.permissions.IsAuthenticatedWithSupabase'
+    ],
+}
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
