@@ -72,7 +72,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             current_date = date.today()
             months_str =  int(months_str)
             final_date = (current_date.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
-            initial_date = (current_date.replace(day=1) - relativedelta(months=months_str))
+            initial_date = (current_date.replace(day=1) - relativedelta(months=months_str-1))
         except Exception as e:
             return Response({'erro': f'Erro: {str(e)}'}, status=400)
         
@@ -81,41 +81,31 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         expense_date__date__gte=initial_date,
         expense_date__date__lte=final_date)
 
-        despesas_por_mes = {}
+        expenses_per_month = {}
 
-        mes_atual = initial_date
-        while mes_atual <= final_date:
-            chave_mes = mes_atual.strftime('%Y-%m')
-            despesas_por_mes[chave_mes] = []
-            mes_atual += relativedelta(months=1)
+        actual_month = initial_date
+        while actual_month <= final_date:
+            month_key = actual_month.strftime('%Y-%m')
+            expenses_per_month[month_key] = []
+            actual_month += relativedelta(months=1)
 
         
-        for despesa in expenses:
-            chave_mes = despesa.expense_date.strftime('%Y-%m')
-            despesas_por_mes[chave_mes].append(despesa)
+        for expense in expenses:
+            month_key = expense.expense_date.strftime('%Y-%m')
+            expenses_per_month[month_key].append(expense)
 
     
-        resultado = []
-        for mes, lista_despesas in despesas_por_mes.items():
-            serializer = ExpenseSerializer(lista_despesas, many=True)
-            total_mes = sum([despesa.value for despesa in lista_despesas])
-            resultado.append({
-                'month': mes,
-                'total': total_mes,
+        result = []
+        for month, expenses_list in expenses_per_month.items():
+            serializer = ExpenseSerializer(expenses_list, many=True)
+            total_month = sum([expense.value for expense in expenses_list])
+            result.append({
+                'month': month,
+                'total': total_month,
                 'expenses': serializer.data
             })
 
-        return Response(resultado)
-
-        
-
-
-
-        
-
-
-
-
+        return Response(result)
 
 
 class LessonViewSet(viewsets.ModelViewSet):
@@ -129,8 +119,86 @@ class IncomeTypeViewSet(viewsets.ModelViewSet):
 
 
 class IncomeViewSet(viewsets.ModelViewSet):
-    queryset = Income.objects.all()
+    queryset = Income.objects.none()
     serializer_class = IncomeSerializer
+
+    def get_queryset(self):
+        user_id = self.request.query_params.get('user_id')
+        if user_id:
+            return Income.objects.filter(user_id=user_id)
+        return Income.objects.all()
+
+    @action(detail=False, methods=['get'])
+    def by_month(self, request):
+        month_str = request.query_params.get('month')
+        user_id = request.query_params.get('user_id')
+
+        if not month_str or not user_id:
+            return Response({'erro': 'Parâmetros "user_id" e "month" são obrigatórios.'}, status=400)
+
+        try:
+            year, month = map(int, month_str.split('-'))
+            start_date = date(year, month, 1)
+            end_date = start_date + relativedelta(months=1) - relativedelta(days=1)
+        except Exception as e:
+            return Response({'erro': f'Formato de mês inválido. Use YYYY-MM. Erro: {str(e)}'}, status=400)
+
+        income = Income.objects.filter(
+            user_id=user_id,
+            income_date__date__gte=start_date,
+            income_date__date__lte=end_date
+        ).order_by('-income_date')
+
+        serializer = IncomeSerializer(income, many=True)
+        return Response(serializer.data)
+    
+
+    @action(detail=False, methods=['get'])
+    def last_months(self, request):
+        user_id = request.query_params.get('user_id')
+        months_str = request.query_params.get('months')
+        
+        if not months_str or not user_id:
+            return Response({'erro': 'Parâmetros "user_id" e "months" são obrigatórios.'}, status=400)
+        
+        try:
+            current_date = date.today()
+            months_str =  int(months_str)
+            final_date = (current_date.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
+            initial_date = (current_date.replace(day=1) - relativedelta(months=months_str-1))
+        except Exception as e:
+            return Response({'erro': f'Erro: {str(e)}'}, status=400)
+        
+        incomes = Income.objects.filter(
+        user_id=user_id,
+        income_date__date__gte=initial_date,
+        income_date__date__lte=final_date)
+
+        income_per_month = {}
+
+        actual_month = initial_date
+        while actual_month <= final_date:
+            key_month = actual_month.strftime('%Y-%m')
+            income_per_month[key_month] = []
+            actual_month += relativedelta(months=1)
+
+        
+        for income in incomes:
+            key_month = income.income_date.strftime('%Y-%m')
+            income_per_month[key_month].append(income)
+
+    
+        result = []
+        for month, incomes_list in income_per_month.items():
+            serializer = IncomeSerializer(incomes_list, many=True)
+            total_month = sum([income.value for income in incomes_list])
+            result.append({
+                'month': month,
+                'total': total_month,
+                'incomes': serializer.data
+            })
+
+        return Response(result)
 
 
 class PostViewSet(viewsets.ModelViewSet):
