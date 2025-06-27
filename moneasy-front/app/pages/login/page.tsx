@@ -8,13 +8,27 @@ export default function LoginPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (email === "admin@example.com" && password === "123") {
-            localStorage.setItem("logged", "true")
-            router.push("/pages/dashboard")
-        } else {
-            alert("Login inválido")
+
+        try {
+            const res = await fetch("http://127.0.0.1:8000/api/user/")
+            const users = await res.json()
+            
+            const foundUser = users.find(
+                (user: { email: string; password: string }) =>
+                    user.email === email && user.password === password
+            )
+
+            if (foundUser) {
+                localStorage.setItem("logged", "true")
+                localStorage.setItem("userId", foundUser.id.toString())
+                router.push("/pages/dashboard")
+            } else {
+                alert("Email ou senha incorretos")
+            }
+        } catch (error) {
+            alert("Erro ao acessar a API")
         }
     }
 
@@ -25,27 +39,27 @@ export default function LoginPage() {
                 <h2 className="text-5xl mt-36">Bem vindo!</h2>
                 <h2 className="text-5xl mt-10">Cadastre-se agora</h2>
                 <h2 className="text-5xl mt-10">facilite sua gestão.</h2>
-
             </div>
 
-            {/* Lado direito branco */}
             <div className="flex-1 bg-gray-200 flex flex-col justify-center items-center p-10">
                 <div className="w-[70%] h-[90%] bg-white rounded-md flex flex-col justify-center items-center shadow-md">
                     <form onSubmit={handleLogin} className="w-full max-w-md flex flex-col">
                         <div className="flex justify-center">
-                            <h1 className="text-3xl font-semibold mb-6 text-center justify-center text-green-700 pr-2">Entre na sua conta!</h1>
+                            <h1 className="text-3xl font-semibold mb-6 text-center justify-center text-green-700 pr-2">
+                                Entre na sua conta!
+                            </h1>
                         </div>
                         <label>E-mail</label>
                         <input
                             value={email}
-                            onChange={e => setEmail(e.target.value)}
+                            onChange={(e) => setEmail(e.target.value)}
                             placeholder="Email"
                             className="border rounded-md p-3 mb-4"
                         />
                         <label>Senha</label>
                         <input
                             value={password}
-                            onChange={e => setPassword(e.target.value)}
+                            onChange={(e) => setPassword(e.target.value)}
                             type="password"
                             placeholder="Senha"
                             className="border rounded-md p-3 mb-6"
@@ -56,17 +70,6 @@ export default function LoginPage() {
                         >
                             Entrar
                         </button>
-                        <button
-                            type="submit"
-                            className="mt-5 bg-green-800 text-white p-3 rounded-md hover:bg-green-700 transition cursor-pointer"
-                        >
-                            Entrar com google
-                        </button>
-                        <div className="justify-center items-center flex mt-5 ">
-                            <label>Não possui uma conta?</label>
-                            <a className="pl-2 text-green-800 underline cursor-pointer" href="../pages/register">Registre-se</a>
-                        </div>
-
                     </form>
                 </div>
             </div>
