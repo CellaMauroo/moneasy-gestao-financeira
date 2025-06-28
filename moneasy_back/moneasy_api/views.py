@@ -39,6 +39,8 @@ class SupabaseLoginView(APIView):
         })
     
 class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = [AllowAny]
+    
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
