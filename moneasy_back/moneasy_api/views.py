@@ -7,56 +7,75 @@ from rest_framework.decorators import action
 from dateutil.relativedelta import relativedelta
 from moneasy_api.serializers import *
 from moneasy_api.models import *
-from rest_framework.views import APIView
-from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.permissions import AllowAny
-import jwt
-import os
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .authentication import SupabaseAuthentication
+
+
 # Create your views here.
-SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 
-class SupabaseLoginView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        auth_header = request.headers.get("Authorization")
-
-        if not auth_header or not auth_header.startswith("Bearer "):
-            raise AuthenticationFailed("Token JWT ausente ou inválido.")
-
-        token = auth_header.split(" ")[1]
-
-        try:
-            payload = jwt.decode(token, SUPABASE_JWT_SECRET, algorithms=["HS256"])
-        except jwt.ExpiredSignatureError:
-            raise AuthenticationFailed("Token expirado.")
-        except jwt.InvalidTokenError:
-            raise AuthenticationFailed("Token inválido.")
-        
-        return Response({
-            "mensagem": "Token válido. Acesso liberado.",
-            "usuario_email": payload.get("email"),
-        })
-    
 class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
-    
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserSerializer # Use seu serializer
+
+    def create(self, request, *args, **kwargs):
+        """
+        Sobrescreve o método POST para ATUALIZAR o perfil criado pelo trigger,
+        em vez de criar um novo.
+        """
+        # 1. Pega o supabase_id do corpo da requisição
+        supabase_id = request.data.get('supabase_id')
+
+        if not supabase_id:
+            return Response(
+                {"error": "supabase_id é obrigatório."},
+            )
+
+        try:
+            # 2. Encontra o usuário que o trigger já criou
+            user = User.objects.get(supabase_id=supabase_id)
+
+            # 3. Agora, em vez de criar, nós ATUALIZAMOS a instância existente com os novos dados
+            # O `partial=True` permite uma atualização parcial, similar a um método PATCH.
+            serializer = self.get_serializer(instance=user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer) # self.perform_update é um método do DRF que chama serializer.save()
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            # Este é um cenário de fallback, caso o trigger tenha falhado ou esteja lento.
+            # Aqui, poderíamos optar por criar o usuário do zero.
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer) # perform_create chama serializer.save() para criar
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Ocorreu um erro: {str(e)}"},
+            )
+
+    # Precisamos sobrescrever o perform_update também, pois o padrão espera um 'pk' na URL
+    def perform_update(self, serializer):
+        serializer.save()
 
 class ExpenseGroupViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = ExpenseGroup.objects.all()
     serializer_class = ExpenseGroupSerializer
 
 
 class ExpenseCategoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = ExpenseCategory.objects.all()
     serializer_class = ExpenseCategorySerializer
 
 
-
-
 class ExpenseViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = Expense.objects.none()
     serializer_class = ExpenseSerializer
 
@@ -139,16 +158,19 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
 
 class LessonViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
 
 
 class IncomeTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = IncomeType.objects.all()
     serializer_class = IncomeTypeSerializer
 
 
 class IncomeViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Income.objects.none()
     serializer_class = IncomeSerializer
 
@@ -232,11 +254,13 @@ class IncomeViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
