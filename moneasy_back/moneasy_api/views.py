@@ -9,6 +9,7 @@ from moneasy_api.serializers import *
 from moneasy_api.models import *
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .authentication import SupabaseAuthentication
+from rest_framework import status
 
 
 # Create your views here.
