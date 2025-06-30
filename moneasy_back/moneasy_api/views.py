@@ -50,12 +50,14 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 class ExpenseGroupViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = ExpenseGroup.objects.all()
     serializer_class = ExpenseGroupSerializer
 
 
 class ExpenseCategoryViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = ExpenseCategory.objects.all()
     serializer_class = ExpenseCategorySerializer
@@ -201,21 +203,50 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             })
 
         return Response(result)
-            
+    
+    @action(detail=False, methods=['get'])
+    def best_worst(self, request):
+        user_id = request.query_params.get('user_id')
+        if not user_id:
+            return Response({'erro': 'Parâmetro "user_id" é obrigatório.'}, status=400)
+
+        grouped = Expense.objects.filter(user_id=user_id).annotate(
+            year=ExtractYear('expense_date'),
+            month=ExtractMonth('expense_date')
+        ).values('year', 'month').annotate(total=Sum('value'))
+
+        if not grouped:
+            return Response({'erro': 'Nenhum dado encontrado.'}, status=404)
+
+        resultado = [{
+            'mes': f"{item['year']}-{item['month']:02}",
+            'total': float(item['total'])
+        } for item in grouped]
+
+        melhor = min(resultado, key=lambda x: x['total'])
+        pior = max(resultado, key=lambda x: x['total'])
+
+        return Response({
+            'melhor_mes': melhor,
+            'pior_mes': pior
+        })
 
 class LessonViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
 
 
 class IncomeTypeViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = IncomeType.objects.all()
     serializer_class = IncomeTypeSerializer
 
 
 class IncomeViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Income.objects.none()
     serializer_class = IncomeSerializer
@@ -356,14 +387,42 @@ class IncomeViewSet(viewsets.ModelViewSet):
 
         return Response(result)
 
+    @action(detail=False, methods=['get'])
+    def best_worst(self, request):
+        user_id = request.query_params.get('user_id')
+        if not user_id:
+            return Response({'erro': 'Parâmetro "user_id" é obrigatório.'}, status=400)
+
+        grouped = Income.objects.filter(user_id=user_id).annotate(
+            year=ExtractYear('income_date'),
+            month=ExtractMonth('income_date')
+        ).values('year', 'month').annotate(total=Sum('value'))
+
+        if not grouped:
+            return Response({'erro': 'Nenhum dado encontrado.'}, status=404)
+
+        resultado = [{
+            'mes': f"{item['year']}-{item['month']:02}",
+            'total': float(item['total'])
+        } for item in grouped]
+
+        melhor = max(resultado, key=lambda x: x['total'])
+        pior = min(resultado, key=lambda x: x['total'])
+
+        return Response({
+            'melhor_mes': melhor,
+            'pior_mes': pior
+        })
 
 class PostViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
