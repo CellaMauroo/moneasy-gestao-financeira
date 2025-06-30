@@ -2,6 +2,21 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from validate_docbr import CPF
 from moneasy_api.models import *
+from django.contrib.auth import get_user_model
+from rest_framework import serializers
+from .models import Comment, User, Post   
+
+class UserSlimSerializer(serializers.ModelSerializer):
+    """Só expõe o username (ou outros poucos campos)."""
+    class Meta:
+        model  = User
+        fields = ("id", "username")        
+        
+UserModel = get_user_model()
+class SimpleUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = UserModel
+        fields = ("id", "username")
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,12 +84,36 @@ class IncomeSerializer(serializers.ModelSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Post
-        fields = '__all__'
+    user    = SimpleUserSerializer(read_only=True)   
+    user_id = serializers.PrimaryKeyRelatedField(    
+        queryset=UserModel.objects.all(),
+        source="user",
+        write_only=True
+    )
 
+    class Meta:
+        model  = Post
+        fields = ("id", "title", "body", "created_at",
+                  "user", "user_id")                
 
 class CommentSerializer(serializers.ModelSerializer):
+   
+    user = UserSlimSerializer(read_only=True)
+
+    
+    user_id = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), write_only=True, source="user"
+    )
+    post_id = serializers.PrimaryKeyRelatedField(
+        queryset=Post.objects.all(), write_only=True, source="post"
+    )
+
     class Meta:
-        model = Comment
-        fields = '__all__'
+        model  = Comment
+        fields = [
+            "id", "body", "created_at",
+            "user",                
+            "post",                
+            "user_id", "post_id",  
+        ]
+        read_only_fields = ("id", "created_at", "user", "post")
