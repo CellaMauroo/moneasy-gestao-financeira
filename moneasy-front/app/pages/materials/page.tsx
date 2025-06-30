@@ -73,7 +73,6 @@ export default function MaterialsPage() {
                 className="bg-white rounded-lg shadow flex flex-col lg:flex-row
                            items-start lg:items-center gap-6 p-6"
               >
-                
                 <div className="shrink-0 h-10 w-10 flex items-center justify-center
                                 rounded-full border-2 border-green-600 text-green-600 font-bold">
                   {m.tag === "Video" ? "▶" : "📄"}
