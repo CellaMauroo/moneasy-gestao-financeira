@@ -148,3 +148,8 @@ REST_FRAMEWORK = {
 SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
 if not SUPABASE_JWT_SECRET:
     raise RuntimeError("A variável SUPABASE_JWT_SECRET não foi definida no .env")
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 50
+}
