@@ -15,16 +15,12 @@ class SupabaseAuthentication(BaseAuthentication):
             return None
 
         token = auth_header.split(" ")[1]
-        
-        if not SUPABASE_JWT_SECRET:
-            raise AuthenticationFailed("SUPABASE_JWT_SECRET não configurado no servidor.")
 
         try:
             payload = jwt.decode(
                 token,
                 SUPABASE_JWT_SECRET,
                 algorithms=["HS256"],
-                # A LINHA QUE FALTAVA:
                 audience="authenticated", 
                 options={
                     "verify_exp": True,

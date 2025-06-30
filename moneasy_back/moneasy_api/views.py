@@ -19,11 +19,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer # Use seu serializer
 
     def create(self, request, *args, **kwargs):
-        """
-        Sobrescreve o método POST para ATUALIZAR o perfil criado pelo trigger,
-        em vez de criar um novo.
-        """
-        # 1. Pega o supabase_id do corpo da requisição
         supabase_id = request.data.get('supabase_id')
 
         if not supabase_id:
@@ -32,23 +27,18 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            # 2. Encontra o usuário que o trigger já criou
             user = User.objects.get(supabase_id=supabase_id)
 
-            # 3. Agora, em vez de criar, nós ATUALIZAMOS a instância existente com os novos dados
-            # O `partial=True` permite uma atualização parcial, similar a um método PATCH.
             serializer = self.get_serializer(instance=user, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer) # self.perform_update é um método do DRF que chama serializer.save()
+            self.perform_update(serializer)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         except User.DoesNotExist:
-            # Este é um cenário de fallback, caso o trigger tenha falhado ou esteja lento.
-            # Aqui, poderíamos optar por criar o usuário do zero.
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer) # perform_create chama serializer.save() para criar
+            self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -56,8 +46,6 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(
                 {"error": f"Ocorreu um erro: {str(e)}"},
             )
-
-    # Precisamos sobrescrever o perform_update também, pois o padrão espera um 'pk' na URL
     def perform_update(self, serializer):
         serializer.save()
 
