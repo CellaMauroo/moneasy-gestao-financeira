@@ -25,7 +25,7 @@ export default function LoginPage() {
             alert("Erro no login: " + error.message);
         } else if (data.user) {
             alert("Login realizado com sucesso!");
-            router.push("/pages/dashboard");
+            router.push("/pages/income");
         }
 
     }
