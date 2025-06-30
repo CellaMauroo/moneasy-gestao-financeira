@@ -23,15 +23,25 @@ class ExpenseGroupSerializer(serializers.ModelSerializer):
 
 
 class ExpenseCategorySerializer(serializers.ModelSerializer):
+    group = ExpenseGroupSerializer(read_only=True)
     class Meta:
         model = ExpenseCategory
         fields = '__all__'
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
+    category = ExpenseCategorySerializer(read_only=True)
+    
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=ExpenseCategory.objects.all(), write_only=True, source='category'
+    )
+    group_id = serializers.PrimaryKeyRelatedField(
+        queryset=ExpenseGroup.objects.all(), write_only=True, source='group'
+    )
     class Meta:
         model = Expense
-        fields = '__all__'
+        fields = ['expense_date', 'value', 'user', 'category', 'category_id', 'group_id']
+
 
 
 class LessonSerializer(serializers.ModelSerializer):
@@ -47,6 +57,7 @@ class IncomeTypeSerializer(serializers.ModelSerializer):
 
 
 class IncomeSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model = Income
         fields = '__all__'

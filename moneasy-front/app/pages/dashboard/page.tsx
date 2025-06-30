@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../../components/header";
 import Navbar from "../../components/navbar";
-
+import { supabase } from "../../lib/supabaseClient";
+import LogoutButton from '@/app/components/logoutButton';
 type Expense = {
   id: number;
   expense_name: string;
@@ -17,35 +18,45 @@ type Expense = {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const isLogged = localStorage.getItem("logged") === "true";
-    if (!isLogged) {
-      router.push("/login");
-      return;
-    }
-    setIsChecking(false);
+    const fetchExpenses = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    fetch("http://127.0.0.1:8000/api/expense/")
-      .then((res) => {
-        if (!res.ok) throw new Error("Erro ao buscar despesas");
-        return res.json();
-      })
-      .then((data: Expense[]) => {
+        if (sessionError || !session) {
+          router.push("/login");
+          return;
+        }
+
+        const accessToken = session.access_token;
+        console.log("Access Token:", accessToken);
+
+        const res = await fetch("http://127.0.0.1:8000/api/expense/", {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`Erro: ${res.status} ${res.statusText}`);
+        }
+
+        const data: Expense[] = await res.json();
         setExpenses(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err: any) {
         setError(err.message);
+      } finally {
         setLoading(false);
-      });
-  }, [router]);
+      }
+    };
 
-  if (isChecking) return null;
+    fetchExpenses();
+  }, []); // ✅ Adicionado array de dependência
 
   return (
     <div>
@@ -54,7 +65,7 @@ export default function DashboardPage() {
         <Navbar />
         <main className="w-6/7 p-6 bg-gray-300 overflow-auto">
           <h1 className="text-4xl font-bold mb-6">Dashboard</h1>
-
+          <LogoutButton></LogoutButton>
           {loading && <p>Carregando despesas...</p>}
           {error && <p className="text-red-600">Erro: {error}</p>}
 

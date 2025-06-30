@@ -27,6 +27,5 @@ router.register(r'comment', CommentViewSet)
 app_name = 'moneasy_api'
 
 urlpatterns = [
-    path('login/', SupabaseLoginView.as_view(), name='login'),
     path('', include(router.urls))
 ]

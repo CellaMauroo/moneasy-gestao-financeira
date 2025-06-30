@@ -2,34 +2,32 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { supabase } from "../../lib/supabaseClient";
+
 
 export default function LoginPage() {
+    
+  
+    
     const router = useRouter()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
     const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault()
+         e.preventDefault(); 
 
-        try {
-            const res = await fetch("http://127.0.0.1:8000/api/user/")
-            const users = await res.json()
-            
-            const foundUser = users.find(
-                (user: { email: string; password: string }) =>
-                    user.email === email && user.password === password
-            )
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,       
+            password: password  
+        });
 
-            if (foundUser) {
-                localStorage.setItem("logged", "true")
-                localStorage.setItem("userId", foundUser.id.toString())
-                router.push("/pages/dashboard")
-            } else {
-                alert("Email ou senha incorretos")
-            }
-        } catch (error) {
-            alert("Erro ao acessar a API")
+        if (error) {
+            alert("Erro no login: " + error.message);
+        } else if (data.user) {
+            alert("Login realizado com sucesso!");
+            router.push("/pages/dashboard");
         }
+
     }
 
     return (
