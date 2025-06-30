@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'moneasy_api',
 ]
 
+
+
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -133,3 +135,16 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'moneasy_api.authentication.SupabaseAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
+SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
+if not SUPABASE_JWT_SECRET:
+    raise RuntimeError("A variável SUPABASE_JWT_SECRET não foi definida no .env")

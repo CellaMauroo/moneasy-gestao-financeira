@@ -7,26 +7,63 @@ from rest_framework.decorators import action
 from dateutil.relativedelta import relativedelta
 from moneasy_api.serializers import *
 from moneasy_api.models import *
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .authentication import SupabaseAuthentication
+
 
 # Create your views here.
 
 class UserViewSet(viewsets.ModelViewSet):
+    permission_classes = [AllowAny]
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserSerializer # Use seu serializer
+
+    def create(self, request, *args, **kwargs):
+        supabase_id = request.data.get('supabase_id')
+
+        if not supabase_id:
+            return Response(
+                {"error": "supabase_id é obrigatório."},
+            )
+
+        try:
+            user = User.objects.get(supabase_id=supabase_id)
+
+            serializer = self.get_serializer(instance=user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Ocorreu um erro: {str(e)}"},
+            )
+    def perform_update(self, serializer):
+        serializer.save()
 
 class ExpenseGroupViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = ExpenseGroup.objects.all()
     serializer_class = ExpenseGroupSerializer
 
 
 class ExpenseCategoryViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = ExpenseCategory.objects.all()
     serializer_class = ExpenseCategorySerializer
 
 
-
-
 class ExpenseViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SupabaseAuthentication]
+    permission_classes = [IsAuthenticated]
     queryset = Expense.objects.none()
     serializer_class = ExpenseSerializer
 
@@ -167,16 +204,19 @@ class ExpenseViewSet(viewsets.ModelViewSet):
             
 
 class LessonViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
 
 
 class IncomeTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = IncomeType.objects.all()
     serializer_class = IncomeTypeSerializer
 
 
 class IncomeViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Income.objects.none()
     serializer_class = IncomeSerializer
 
@@ -318,12 +358,30 @@ class IncomeViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
+    @action(detail=False, methods=['get'])
+    def by_post(self, request):
+        post_id = request.query_params.get('id')
+
+        if not post_id:
+            return Response({'erro': 'Parâmetros "id" são obrigatórios.'}, status=400)
+
+        try:
+            post_id = int(post_id)
+        except ValueError:
+            return Response({'erro': 'Parâmetro "id" deve ser um número inteiro.'}, status=400)  
+        
+        comments_post = Comment.objects.filter(post__id = post_id)
+        comment_serializer =  CommentSerializer(comments_post, many=True)
+
+        return Response(comment_serializer.data)
 
