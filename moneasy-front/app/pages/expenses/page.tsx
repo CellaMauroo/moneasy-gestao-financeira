@@ -1,5 +1,7 @@
 "use client";
-import { useState } from "react";
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import Header from "../../components/header";
 import Navbar from "../../components/navbar";
 import NewExpenseButton from "../../components/newExpenseButton";
@@ -13,9 +15,21 @@ interface Expense {
 }
 
 export default function ExpensesPage() {
+  const router = useRouter()
+  const [isChecking, setIsChecking] = useState(true)
+
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingIdx, setEditingIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+      const isLogged = localStorage.getItem("logged") === "true"
+      if (!isLogged) {
+        router.push("/login")
+      } else {
+        setIsChecking(false)
+      }
+    }, [])
 
   const openNew = () => {
     setEditingIdx(null);
