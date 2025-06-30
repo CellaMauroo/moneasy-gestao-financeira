@@ -41,3 +41,19 @@ export interface Income {
   user: number;
 }
 
+/* ---------- Fórum ---------- */
+export interface Post {
+  id: number;
+  title: string;
+  body: string;          // ← novo
+  created_at: string;
+  user: number;
+}
+
+export interface Comment {
+  id: number;
+  body: string;
+  created_at: string;
+  user: number;
+  post: number;
+}
