@@ -61,7 +61,7 @@ export default function MaterialsPage() {
       <Header />
 
       <div className="flex min-h-screen">
-        <Navbar active="materials" />
+        <Navbar active="school" />
 
         <main className="flex-1 p-10 bg-gray-200 space-y-8 overflow-y-auto">
           

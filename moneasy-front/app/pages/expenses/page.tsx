@@ -24,7 +24,6 @@ function ExpenseListItem({ expense, onEdit, onDelete }: { expense: Expense, onEd
   // Acessamos os nomes aninhados para exibição, com verificação de nulidade
   const categoryName = expense.category?.category_name || "Sem Categoria";
   const groupName = expense.group?.group_name || "Sem Grupo";
-
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm flex items-center justify-between">
       <div>
@@ -72,7 +71,7 @@ export default function ExpensesPage() {
         fetch(`http://127.0.0.1:8000/api/expense-group/`, { headers: { 'Authorization': `Bearer ${token}` } }),
         fetch(`http://127.0.0.1:8000/api/expense-category/`, { headers: { 'Authorization': `Bearer ${token}` } })
       ]);
-      
+      console.log(expensesRes)
       if (!expensesRes.ok || !groupsRes.ok || !categoriesRes.ok) {
         throw new Error("Falha ao buscar os dados da API.");
       }
@@ -173,7 +172,7 @@ export default function ExpensesPage() {
     <>
       <Header />
       <div className="flex min-h-screen">
-        <Navbar active="expenses"/>
+        <Navbar active="calc"/>
         <main className="flex-1 px-10 py-6 bg-gray-100 space-y-6 overflow-y-auto">
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-800">Minhas Despesas</h1>

@@ -1,4 +1,5 @@
 import Image from "next/image"
+import LogoutButton from "./logoutButton"
 
 interface NavbarProps {
   active?: "money" | "calc" | "school" | "forum"
@@ -18,7 +19,8 @@ export default function Navbar({ active }: NavbarProps) {
   }
 
   return (
-    <aside className="bg-white text-white w-1/7 h-screen p-6 flex flex-col gap-6">
+    <aside className="bg-white text-white w-1/7 h-[80vh] p-6 flex flex-col gap-6 justify-between">
+      <div>
       <nav className="flex flex-col align-center justify-center px-5 py-5 gap-y-14 text-2xl font-bold">
         <div className="flex">
           <Image src={getIcon("panel", active)} alt="Panel" width={40} height={40} />
@@ -41,6 +43,10 @@ export default function Navbar({ active }: NavbarProps) {
           <a href="/pages/forum" className={navLinkClasses("forum", active)}>Fórum</a>
         </div>
       </nav>
+      </div>
+      <div>
+      <LogoutButton></LogoutButton>
+      </div>
     </aside>
   )
 }

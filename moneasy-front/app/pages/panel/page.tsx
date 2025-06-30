@@ -142,7 +142,7 @@ export default function DashboardPage() {
     <div className="bg-gray-100 min-h-screen">
       <Header userName={userName} />
       <div className="flex">
-        <Navbar active="dashboard"/>
+        <Navbar active="panel"/>
         <main className="flex-1 p-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-8">Painel Geral</h1>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
