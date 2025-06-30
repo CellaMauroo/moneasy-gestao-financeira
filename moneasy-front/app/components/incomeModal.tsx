@@ -41,7 +41,7 @@ export default function IncomeModal({
     onSave({
       income_name: name,
       value: String(value),
-      income_date: new Date(date).toISOString(),
+      income_date: date,
       type: Number(typeId),
     });
   };

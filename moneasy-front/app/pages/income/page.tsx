@@ -15,28 +15,45 @@ type FormData = {
   type: number;
 };
 
-function IncomeRow({
-  inc,
-  types,
-  onEdit,
-  onDelete,
-}: {
-  inc: Income;
-  types: IncomeType[];      
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
+function IncomeRow(
+  {
+    inc,
+    types,
+    onEdit,
+    onDelete,
+  }: {
+    inc: Income;
+    types: IncomeType[];
+    onEdit: () => void;
+    onDelete: () => void;
+  }
+) {
   
   const typeName = types.find((t) => t.id === inc.type)?.type ?? "—";
+
+  const fullDesc  = (inc.income_name ?? "").trim();       
+  const shortDesc =
+    fullDesc.length > 30 ? fullDesc.slice(0, 30) + "…" : fullDesc;
+
+
+  const formatDate = (iso: string) => {
+    const [y, m, d] = iso.split("T")[0].split("-");
+    return `${d}/${m}/${y}`;  
+  };
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
       <div>
-        <p className="font-bold text-gray-800">{inc.income_name}</p>
+        
+        <p className="font-bold text-gray-800">
+          {fullDesc || "–"}
+        </p>
 
-       
+        
         <p className="text-sm text-gray-500">
-          {new Date(inc.income_date).toLocaleDateString("pt-BR")} — {typeName}
+          {formatDate(inc.income_date)}
+          {typeName !== "—" && ` — ${typeName}`}
+          {shortDesc && ` — ${shortDesc}`}
         </p>
       </div>
 
@@ -47,12 +64,8 @@ function IncomeRow({
             currency: "BRL",
           })}
         </p>
-        <button onClick={onEdit} className="text-blue-600 hover:underline">
-          Editar
-        </button>
-        <button onClick={onDelete} className="text-red-600 hover:underline">
-          Excluir
-        </button>
+        <button onClick={onEdit}  className="text-blue-600 hover:underline">Editar</button>
+        <button onClick={onDelete} className="text-red-600  hover:underline">Excluir</button>
       </div>
     </div>
   );
@@ -71,11 +84,9 @@ export default function IncomePage() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Income | null>(null);
 
-  /* ---------- fetch all ---------- */
   const fetchAll = useCallback(
     async (token: string) => {
       try {
-        /* resolve user */
         const { data: { user } } = await supabase.auth.getUser();
         const uRes = await fetch("http://127.0.0.1:8000/api/user/", {
           method: "POST",
@@ -86,7 +97,6 @@ export default function IncomePage() {
         if (!u.id) throw new Error("user id not found");
         setUserId(u.id);
 
-        /* parallel fetch */
         const [incomeRes, typeRes] = await Promise.all([
           fetch(`http://127.0.0.1:8000/api/income/?user_id=${u.id}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -109,7 +119,6 @@ export default function IncomePage() {
     []
   );
 
-  /* ---------- auth session ---------- */
   useEffect(() => {
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -121,7 +130,6 @@ export default function IncomePage() {
     })();
   }, [fetchAll, router]);
 
-  /* ---------- CRUD handlers ---------- */
   const openNew = () => { setEditing(null); setShowModal(true); };
   const openEdit = (inc: Income) => { setEditing(inc); setShowModal(true); };
 
@@ -169,7 +177,7 @@ export default function IncomePage() {
     setIncomes((prev) => prev.filter((i) => i.id !== id));
   };
 
-  /* ---------- UI ---------- */
+
   return (
     <>
       <Header />
