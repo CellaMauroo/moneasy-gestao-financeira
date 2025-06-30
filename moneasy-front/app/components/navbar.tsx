@@ -21,6 +21,10 @@ export default function Navbar({ active }: NavbarProps) {
     <aside className="bg-white text-white w-1/7 h-screen p-6 flex flex-col gap-6">
       <nav className="flex flex-col align-center justify-center px-5 py-5 gap-y-14 text-2xl font-bold">
         <div className="flex">
+          <Image src={getIcon("panel", active)} alt="Panel" width={40} height={40} />
+          <a href="/pages/panel" className={navLinkClasses("panel", active)}>Painel Geral</a>
+        </div>
+        <div className="flex">
           <Image src={getIcon("money", active)} alt="Renda" width={40} height={40} />
           <a href="/pages/income" className={navLinkClasses("money", active)}>Renda</a>
         </div>
@@ -35,14 +39,6 @@ export default function Navbar({ active }: NavbarProps) {
         <div className="flex">
           <Image src={getIcon("forum", active)} alt="Fórum" width={40} height={40} />
           <a href="/pages/forum" className={navLinkClasses("forum", active)}>Fórum</a>
-        </div>
-        <div className="flex">
-          <Image src={getIcon("report", active)} alt="Report" width={40} height={40} />
-          <a href="/pages/report" className={navLinkClasses("report", active)}>Relatórios</a>
-        </div>
-        <div className="flex">
-          <Image src={getIcon("panel", active)} alt="Panel" width={40} height={40} />
-          <a href="/pages/panel" className={navLinkClasses("panel", active)}>Painel Geral</a>
         </div>
       </nav>
     </aside>

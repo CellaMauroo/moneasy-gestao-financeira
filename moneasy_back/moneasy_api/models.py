@@ -3,17 +3,11 @@ from django.utils import timezone
 import uuid
 class User(models.Model):
     supabase_id = models.UUIDField(unique=True, null=True, blank=True, editable=False)
-
-    # MUDANÇA: Permitimos que estes campos sejam nulos inicialmente.
-    # A sua API do Django irá preenchê-los momentos depois.
-    cpf = models.CharField(max_length=11, null=True, unique=True) # Alterado de null=False para null=True
-    birth_date = models.DateField(null=True, blank=True) # Alterado de null=False para null=True e adicionado blank=True
-    
-    # É uma boa prática tornar estes nulos também, caso a meta_data não venha
+    cpf = models.CharField(max_length=11, null=True, unique=True) 
+    birth_date = models.DateField(null=True, blank=True) 
     first_name = models.CharField(max_length=255, null=True, blank=True)
     last_name = models.CharField(max_length=255, null=True, blank=True)
-    
-    # Estes podem continuar como estão
+
     username = models.CharField(max_length=255, null=False, unique=True)
     email = models.EmailField(max_length=255, null=False, unique=True)
     
@@ -27,10 +21,6 @@ class User(models.Model):
         db_table = 'users'
     @property
     def is_authenticated(self):
-        """
-        Sempre retorna True. Um objeto User retornado pela nossa autenticação
-        estará sempre autenticado.
-        """
         return True
 
 
@@ -96,6 +86,7 @@ class IncomeType(models.Model):
 
 
 class Income(models.Model):
+    income_name = models.CharField(max_length=255, blank=True, null=True)
     value = models.DecimalField(max_digits=10, decimal_places=2)
     type = models.ForeignKey(IncomeType, on_delete=models.CASCADE, related_name='incomes')
     income_date = models.DateTimeField()

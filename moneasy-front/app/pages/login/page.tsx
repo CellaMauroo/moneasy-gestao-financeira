@@ -25,7 +25,7 @@ export default function LoginPage() {
             alert("Erro no login: " + error.message);
         } else if (data.user) {
             alert("Login realizado com sucesso!");
-            router.push("/pages/income");
+            router.push("/pages/panel");
         }
 
     }
@@ -68,6 +68,7 @@ export default function LoginPage() {
                         >
                             Entrar
                         </button>
+                        
                     </form>
                 </div>
             </div>
