@@ -26,3 +26,19 @@ export interface Expense {
   category: Category; // Espera um objeto Category
   user: number;       // O ID do usuário continua sendo um número
 }
+
+// …interfaces que já existiam (Group, Category, Expense)…
+
+export interface IncomeType {        // análogo a Group / Category
+  id: number;
+  type_name: string;                 // "Investimento", "Salário", etc.
+}
+
+export interface Income {
+  id: number;
+  income_name: string;
+  income_date: string;  // ISO "YYYY-MM-DDTHH:mm:ssZ"
+  value: string;
+  type: IncomeType;     // objeto aninhado, igual à API de expenses
+  user: number;
+}
