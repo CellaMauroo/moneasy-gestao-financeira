@@ -64,19 +64,6 @@ export default function MaterialsPage() {
         <Navbar active="school" />
 
         <main className="flex-1 p-10 bg-gray-200 space-y-8 overflow-y-auto">
-          
-          <div className="flex justify-center">
-            <div className="relative w-full max-w-lg">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Pesquisar..."
-                className="w-full pl-10 pr-4 py-3 rounded-md shadow-sm
-                           focus:outline-none focus:ring-2 focus:ring-green-600"
-                disabled
-              />
-            </div>
-          </div>
 
          
           <section className="space-y-6">
