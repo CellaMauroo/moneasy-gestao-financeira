@@ -74,7 +74,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         return Expense.objects.all()
 
     @action(detail=False, methods=['get'])
-    def by_month(self, request):
+    def by_month(self, request): #/api/expense/last_months/?user_id=X&months=YYYY-MM -> Filtra as despesas de um mês específico 
         month_str = request.query_params.get('month')
         user_id = request.query_params.get('user_id')
 
@@ -98,7 +98,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
-    def last_months(self, request):
+    def last_months(self, request): #/api/expense/last_months/?user_id=X&months=Y -> Filtra as despesas dos ultimos X meses
         user_id = request.query_params.get('user_id')
         months_str = request.query_params.get('months')
         
@@ -144,6 +144,64 @@ class ExpenseViewSet(viewsets.ModelViewSet):
 
         return Response(result)
 
+    @action(detail=False, methods=['get'])
+    def by_group(self, request): #/api/expense/by_group/?user_id=X&months=Y ->Filtra as despesas dos ultimos X meses por grupo
+        user_id = request.query_params.get('user_id')
+        months_str = request.query_params.get('months')
+
+        if not user_id or not months_str:
+            return Response({'erro': 'Parâmetros "user_id" e "months" são obrigatórios.'}, status=400)
+
+        try:
+            months = int(months_str)
+            today = date.today()
+            start_date = today.replace(day=1) - relativedelta(months=months - 1)
+            end_date = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
+        except Exception as e:
+            return Response({'erro': str(e)}, status=400)
+
+        expenses = Expense.objects.filter(
+            user_id=user_id,
+            expense_date__date__gte=start_date,
+            expense_date__date__lte=end_date
+        )
+
+        grouped = expenses.annotate(
+            year=ExtractYear('expense_date'),
+            month=ExtractMonth('expense_date')
+        ).values('year', 'month', 'group').annotate(total=Sum('value')).order_by('year', 'month')
+
+        
+        group_total_month = {}
+
+        actual_month = start_date
+        while actual_month <= end_date:
+            month_key = actual_month.strftime('%Y-%m')
+            group_total_month[month_key] = []
+            actual_month += relativedelta(months=1)
+
+        for entry in grouped:
+            month = f"{entry['year']}-{entry['month']:02d}"
+            group_id = entry['group']
+            total = entry['total']
+
+            group_obj = ExpenseGroup.objects.get(id=group_id)
+            group_data = ExpenseGroupSerializer(group_obj).data
+
+            group_total_month[month].append({
+                'group': group_data,
+                'total': total
+            })
+
+        result = []
+        for month, groups in group_total_month.items():
+            result.append({
+                'month': month,
+                'groups': groups
+            })
+
+        return Response(result)
+            
 
 class LessonViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -239,6 +297,64 @@ class IncomeViewSet(viewsets.ModelViewSet):
             })
 
         return Response(result)
+    
+    @action(detail=False, methods=['get'])
+    def by_type(self, request): #/api/income/by_type/?user_id=X&months=Y ->Filtra as despesas dos ultimos X meses por tipo
+        user_id = request.query_params.get('user_id')
+        months_str = request.query_params.get('months')
+
+        if not user_id or not months_str:
+            return Response({'erro': 'Parâmetros "user_id" e "months" são obrigatórios.'}, status=400)
+
+        try:
+            months = int(months_str)
+            today = date.today()
+            start_date = today.replace(day=1) - relativedelta(months=months - 1)
+            end_date = (today.replace(day=1) + relativedelta(months=1)) - relativedelta(days=1)
+        except Exception as e:
+            return Response({'erro': str(e)}, status=400)
+
+        incomes = Income.objects.filter(
+            user_id=user_id,
+            income_date__date__gte=start_date,
+            income_date__date__lte=end_date
+        )
+
+        grouped = incomes.annotate(
+            year=ExtractYear('income_date'),
+            month=ExtractMonth('income_date')
+        ).values('year', 'month', 'type').annotate(total=Sum('value')).order_by('year', 'month')
+
+        
+        type_total_month = {}
+
+        actual_month = start_date
+        while actual_month <= end_date:
+            month_key = actual_month.strftime('%Y-%m')
+            type_total_month[month_key] = []
+            actual_month += relativedelta(months=1)
+
+        for entry in grouped:
+            month = f"{entry['year']}-{entry['month']:02d}"
+            type_id = entry['type']
+            total = entry['total']
+
+            type_obj = IncomeType.objects.get(id=type_id)
+            type_data = IncomeTypeSerializer(type_obj).data
+
+            type_total_month[month].append({
+                'type': type_data,
+                'total': total
+            })
+
+        result = []
+        for month, types in type_total_month.items():
+            result.append({
+                'month': month,
+                'types': types
+            })
+
+        return Response(result)
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -252,4 +368,20 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
 
+    @action(detail=False, methods=['get'])
+    def by_post(self, request):
+        post_id = request.query_params.get('id')
+
+        if not post_id:
+            return Response({'erro': 'Parâmetros "id" são obrigatórios.'}, status=400)
+
+        try:
+            post_id = int(post_id)
+        except ValueError:
+            return Response({'erro': 'Parâmetro "id" deve ser um número inteiro.'}, status=400)  
+        
+        comments_post = Comment.objects.filter(post__id = post_id)
+        comment_serializer =  CommentSerializer(comments_post, many=True)
+
+        return Response(comment_serializer.data)
 
